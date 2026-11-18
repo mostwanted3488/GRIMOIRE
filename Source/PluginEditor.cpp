@@ -2,7 +2,7 @@
 #include "BinaryData.h"
 
 #if JUCE_WINDOWS && ! JUCE_USE_WIN_WEBVIEW2
- #error "WebView2 doit etre active (NEEDS_WEBVIEW2) pour afficher l'interface"
+ #error "WebView2 must be enabled (NEEDS_WEBVIEW2) to show the UI"
 #endif
 
 namespace { constexpr int baseW = 800, baseH = 600; }
@@ -26,7 +26,7 @@ juce::WebBrowserComponent::Options GrimoireEditor::makeOptions()
         .withKeepPageLoadedWhenBrowserIsHidden()
         .withResourceProvider ([this] (const juce::String& url) { return getResource (url); })
 
-        // l'interface envoie toutes les valeurs (0..1) dans l'ordre de GrimoireIDs
+        // the UI sends every value (0..1) in GrimoireIDs order
         .withNativeFunction ("setParams", [this] (Args args, Completion done)
         {
             if (args.size() > 0)
@@ -84,7 +84,7 @@ juce::WebBrowserComponent::Options GrimoireEditor::makeOptions()
             o->setProperty ("zoom", proc.zoom);
             o->setProperty ("introSeen", proc.introSeen);
             o->setProperty ("sorts", sortsFile().existsAsFile() ? sortsFile().loadFileAsString() : juce::String ("[]"));
-            proc.introSeen = true; // l'intro ne rejoue pas à chaque ouverture de la fenêtre
+            proc.introSeen = true; // the intro does not replay each time the window opens
             done (juce::var (o));
         });
 }
@@ -108,7 +108,7 @@ void GrimoireEditor::applyZoom (float z)
 
 void GrimoireEditor::timerCallback()
 {
-    // état envoyé à l'interface : valeurs (automation de l'hôte), tempo, niveau de sortie
+    // state sent to the UI: values (host automation), tempo, output level
     juce::Array<juce::var> v;
     for (int i = 0; i < GrimoireIDs::count; ++i) v.add (proc.param (i)->getValue());
     auto* o = new juce::DynamicObject();

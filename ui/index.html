@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -88,27 +88,27 @@
 <body>
 <div id="plug">
   <div id="bar">
-    <div id="title"><b>GRIMOIRE</b><span>VOICE FLANGER</span></div>
-    <div id="btns"><small>v0.2 · preview</small><button id="zoom" title="taille de la fenêtre du plugin">⤢ 100%</button><button id="replay">↺ REJOUER</button><button id="byp">BYPASS</button></div>
+    <div id="title"><b>GRIMOIRE</b><span>@buyorbealoser</span></div>
+    <div id="btns"><small>v0.2 · preview</small><button id="zoom" title="plugin window size">⤢ 100%</button><button id="replay">↺ REPLAY</button><button id="byp">BYPASS</button></div>
   </div>
   <div id="view">
     <canvas id="gl" width="400" height="280"></canvas>
     <div id="vig"></div>
     <div id="ui"></div>
     <div id="flash"></div>
-    <div id="spell"><div class="cap">ᛟ SORTILÈGE ᛟ</div>
-      <div class="row"><span id="pprev" class="arr" title="sort précédent">ᐊ</span><span id="pname" title="choisir un sort">GRIMOIRE</span><span id="pnext" class="arr" title="sort suivant">ᐅ</span></div>
-      <div class="idx" id="pidx">I · VIII</div><div class="eng" id="eng">✎ GRAVER UN SORT</div></div>
+    <div id="spell"><div class="cap">ᛟ SPELL ᛟ</div>
+      <div class="row"><span id="pprev" class="arr" title="previous spell">ᐊ</span><span id="pname" title="choose a spell">GRIMOIRE</span><span id="pnext" class="arr" title="next spell">ᐅ</span></div>
+      <div class="idx" id="pidx">I · VIII</div><div class="eng" id="eng">✎ ENGRAVE A SPELL</div></div>
     <div id="pmenu"></div>
-    <div id="hint">GLISSE ↕ SUR UNE RUNE · MOLETTE · DOUBLE-CLIC = RESET</div>
+    <div id="hint">DRAG ↕ ON A RUNE · SCROLL · DOUBLE-CLICK = RESET</div>
   </div>
   <div id="foot">
     <div class="grp">
-      <button id="imp">⇪ IMPORTER</button><button id="demo" title="voix de démo synthétique">DÉMO</button>
-      <button id="play" disabled>▶ LIRE</button><button id="loop" class="on" title="boucle">⟳</button>
-      <span id="meter"><i></i></span><span id="fname">glisse un son ici</span>
+      <button id="imp">⇪ IMPORT</button><button id="demo" title="synthetic demo voice">DEMO</button>
+      <button id="play" disabled>▶ PLAY</button><button id="loop" class="on" title="loop">⟳</button>
+      <span id="meter"><i></i></span><span id="fname">drop a sound here</span>
     </div>
-    <span id="bpmw" title="en vrai, le tempo vient du DAW">BPM <input id="bpm" type="number" value="120" min="40" max="240"></span><span id="bench">BANC D'ESSAI · HORS PLUGIN</span>
+    <span id="bpmw" title="in the plugin, tempo comes from the DAW">BPM <input id="bpm" type="number" value="120" min="40" max="240"></span><span id="bench">TEST BENCH · NOT IN PLUGIN</span>
   </div>
   <input type="file" id="file" accept="audio/*,.wav,.mp3,.aif,.aiff,.flac,.ogg,.m4a" hidden>
 </div>
@@ -604,37 +604,35 @@ const PARAMS=[
   {n:'DEPTH',def:.6,f:v=>Math.round(v*100)+' %'},
   {n:'DELAY',def:.3,f:v=>(0.5+v*9.5).toFixed(1)+' ms'},
   {n:'FEEDBACK',def:.62,bip:true,f:v=>{const x=Math.round((v*2-1)*95);return(x>0?'+':'')+x+' %';}},
-  {n:'SPREAD',def:.5,f:v=>Math.round(v*180)+'°'},
-  {n:'MIX',def:.5,f:v=>Math.round(v*100)+' %'},
+  {n:'MIX',g:5,def:.5,f:v=>Math.round(v*100)+' %'},
 ];
 const SATS=[
   {n:'GAIN',cell:'GRUNE',sx:735,sy:478,def:24/36,zero:24/36,lp:'b',col:[.82,.74,1.0],f:v=>{const d=gainDb(v);return(d>0?'+':'')+d.toFixed(1)+' dB';}},
-  {n:'TONE',cell:'RTONE',sx:735,sy:370,def:.5,zero:.5,lp:'l',col:[1.0,.85,.55],f:v=>{const x=Math.round((v-.5)*200);return x===0?'NEUTRE':x<0?'SOMBRE '+(-x)+'%':'CLAIR '+x+'%';}},
 ];
 SATS.forEach(s=>{s.v=s.def;s.act=0;});
-const KN=[...PARAMS,SATS[1]]; // ce que mémorise un preset (le gain à part)
-PARAMS.forEach(p=>p.v=p.def);
+const KN=[...PARAMS]; // what a preset stores (gain kept apart)
+PARAMS.forEach((p,i)=>{p.v=p.def;if(p.g===undefined)p.g=i;});
 const ui=document.getElementById('ui');
 SATS.forEach(p=>{const d=document.createElement('div');d.className='lab '+(p.lp==='b'?'':p.lp);d.innerHTML=`<span class="n">${p.n}</span><span class="v"></span>`;ui.appendChild(d);p.el=d;p.vel=d.querySelector('.v');});
-PARAMS.forEach((p,i)=>{const d=document.createElement('div');d.className='lab';d.innerHTML=`<span class="n">${p.n}</span><span class="v"></span>`+(i===0?'<span class="m" id="syncm">◈ LIBRE</span>':'');ui.appendChild(d);p.el=d;p.vel=d.querySelector('.v');});
+PARAMS.forEach((p,i)=>{const d=document.createElement('div');d.className='lab';d.innerHTML=`<span class="n">${p.n}</span><span class="v"></span>`+(i===0?'<span class="m" id="syncm">◈ FREE</span>':'');ui.appendChild(d);p.el=d;p.vel=d.querySelector('.v');});
 
 /* =====================================================================
    PRESETS (sorts)
    ===================================================================== */
-const toV=(hz,dep,ms,fb,sp,mix,x=[.5])=>[Math.log(hz/.05)/Math.log(100),dep/100,(ms-.5)/9.5,(fb/95+1)/2,sp/180,mix/100,...x].map(x=>clamp(x));
+const toV=(hz,dep,ms,fb,sp,mix)=>[Math.log(hz/.05)/Math.log(100),dep/100,(ms-.5)/9.5,(fb/95+1)/2,mix/100].map(x=>clamp(x));
 const PRESETS=[
-  {n:'GRIMOIRE',d:'tout par défaut (gain inclus)',v:KN.map(p=>p.def),fx:'sigil'},
-  {n:'MURMURE',d:'voix doublée, flange discret',v:toV(.18,30,3.2,18,90,32,[.45]),fx:'spirits'},
-  {n:'JET ASTRAL',d:'balayage d’avion, lent et profond',v:toV(.09,92,1.6,72,30,50,[.6]),fx:'vortex'},
-  {n:'SPECTRE',d:'voix creuse, feedback négatif',v:toV(.42,70,4,-76,120,55,[.4]),fx:'spirits'},
-  {n:'POSSESSION',d:'métallique, rapide, inquiétant',v:toV(3.6,48,1.1,86,180,62,[.7]),fx:'storm'},
-  {n:'ABYSSE',d:'très lent, très large, sombre',v:toV(.05,100,8,-58,60,50,[.3]),fx:'eclipse'},
-  {n:'ÉCHO LICHE',d:'résonance robotique',v:toV(.7,18,.7,92,0,70,[.65]),fx:'sigil'},
-  {n:'INCANTATION',d:'stéréo immense, ondulant',v:toV(.26,66,5,40,180,46,[.55]),fx:'vortex'},
-  {n:'TECHWIZARD',d:'rapide, aérien, éthéré',v:toV(2.4,38,1.8,58,150,44,[.68]),fx:'techwizard'},
+  {n:'GRIMOIRE',d:'everything default (gain included)',v:KN.map(p=>p.def),fx:'sigil'},
+  {n:'WHISPER',d:'doubled voice, subtle flange',v:toV(.18,30,3.2,18,90,32),fx:'spirits'},
+  {n:'ASTRAL JET',d:'jet sweep, slow and deep',v:toV(.09,92,1.6,72,30,50),fx:'vortex'},
+  {n:'SPECTRE',d:'hollow voice, negative feedback',v:toV(.42,70,4,-76,120,55),fx:'spirits'},
+  {n:'POSSESSION',d:'metallic, fast, unsettling',v:toV(3.6,48,1.1,86,180,62),fx:'storm'},
+  {n:'ABYSS',d:'very slow, very wide, dark',v:toV(.05,100,8,-58,60,50),fx:'eclipse'},
+  {n:'LICH ECHO',d:'robotic resonance',v:toV(.7,18,.7,92,0,70),fx:'sigil'},
+  {n:'INCANTATION',d:'huge stereo, undulating',v:toV(.26,66,5,40,180,46),fx:'vortex'},
+  {n:'TECHWIZARD',d:'fast, airy, ethereal',v:toV(2.4,38,1.8,58,150,44),fx:'techwizard'},
 ];
 const FACTORY=PRESETS.length;
-function loadSorts(txt){try{const u=JSON.parse(txt||'[]');u.forEach(p=>{if(p&&p.n&&Array.isArray(p.v)&&p.v.length===9)p.v=[...p.v.slice(0,6),p.v[8]];if(p&&p.n&&Array.isArray(p.v)&&p.v.length===7)PRESETS.push({n:p.n,d:'sort gravé',v:p.v,fx:'sigil',user:true,sync:!!p.sync});});}catch(e){}}
+function loadSorts(txt){try{const u=JSON.parse(txt||'[]');u.forEach(p=>{if(p&&p.n&&Array.isArray(p.v)&&(p.v.length===9||p.v.length===7))p.v=[p.v[0],p.v[1],p.v[2],p.v[3],p.v[5]];if(p&&p.n&&Array.isArray(p.v)&&p.v.length===5)PRESETS.push({n:p.n,d:'engraved spell',v:p.v,fx:'sigil',user:true,sync:!!p.sync});});}catch(e){}}
 if(!PLUGIN){try{loadSorts(localStorage.getItem('grimoire_sorts'));}catch(e){}}
 function saveUser(){const j=JSON.stringify(PRESETS.filter(p=>p.user).map(p=>({n:p.n,v:p.v,sync:p.sync})));if(PLUGIN){native('saveSorts',j);return;}try{localStorage.setItem('grimoire_sorts',j);}catch(e){}}
 let curPreset=0,presetDirty=false,tween=null,fxEvents=[],closeC=0;
@@ -663,8 +661,8 @@ function audioInit(){
 }
 function audioUpdate(now){
   if(!AE.ctx)return;const C=AE.ctx,T=C.currentTime,tc=now?.001:.04,v=PARAMS.map(p=>p.v);
-  const hz=rateHzOf(v[0]),dep=v[1],base=(.5+v[2]*9.5)/1000,fb=(v[3]*2-1)*.95,spr=v[4]*Math.PI,mix=v[5];
-  const tn=SATS[1].v;
+  const hz=rateHzOf(v[0]),dep=v[1],base=(.5+v[2]*9.5)/1000,fb=(v[3]*2-1)*.95,spr=Math.PI/2,mix=v[4];
+  const tn=.5;
   AE.ch.forEach(c=>{c.lfo.frequency.setTargetAtTime(hz,T,tc);c.d.delayTime.setTargetAtTime(base,T,tc);
     c.amt.gain.setTargetAtTime(dep*(base-.00008),T,tc);c.fb.gain.setTargetAtTime(fb,T,tc);});
   AE.tlp.frequency.setTargetAtTime(tn<.5?18000*Math.pow(1100/18000,(.5-tn)*2):18000,T,tc);AE.ths.gain.setTargetAtTime(tn>.5?(tn-.5)*2*9:0,T,tc);
@@ -677,12 +675,12 @@ function audioPlay(){
   if(!AE.buf)return;audioInit();audioStop();const s=AE.ctx.createBufferSource();s.buffer=AE.buf;s.loop=AE.loop;s.connect(AE.inp);
   s.onended=()=>{if(AE.src===s){AE.src=null;AE.playing=false;updTransport();}};s.start();AE.src=s;AE.playing=true;updTransport();
 }
-function updTransport(){const b=document.getElementById('play');b.disabled=!AE.buf;b.textContent=AE.playing?'■ STOP':'▶ LIRE';b.classList.toggle('on',AE.playing);}
+function updTransport(){const b=document.getElementById('play');b.disabled=!AE.buf;b.textContent=AE.playing?'■ STOP':'▶ PLAY';b.classList.toggle('on',AE.playing);}
 async function loadFile(f){
-  if(!f)return;audioInit();document.getElementById('fname').textContent='décodage…';
+  if(!f)return;audioInit();document.getElementById('fname').textContent='decoding…';
   try{const ab=await f.arrayBuffer();AE.buf=await AE.ctx.decodeAudioData(ab);document.getElementById('fname').textContent=f.name;
       document.getElementById('fname').title=f.name;audioPlay();}
-  catch(e){document.getElementById('fname').textContent='format illisible';AE.buf=null;updTransport();}
+  catch(e){document.getElementById('fname').textContent='unreadable format';AE.buf=null;updTransport();}
 }
 function demoBuffer(){ // voix synthétique « aaa / ooo » pour tester
   const C=AE.ctx,sr=C.sampleRate,dur=6,N=sr*dur,b=C.createBuffer(2,N,sr),L=b.getChannelData(0),Rr=b.getChannelData(1);
@@ -777,7 +775,7 @@ function frame(){
              M4.rz(lerp(.14,0,o)+Math.sin(t*53)*sh*2),M4.t(-W/2*(1-o),0,-TT/2));
   let ink=null;
   if(ready){const base=(.5+P[2]*9.5)/1000;const tau=Math.max(.00005,base+depth*(base-.00008)*Math.sin(lfo));
-    const fb=fbk*.95,mix=P[5],dry=1-mix*.85,N=150;ink=[];
+    const fb=fbk*.95,mix=P[4],dry=1-mix*.85,N=150;ink=[];
     for(let i=0;i<=N;i++){const u=i/N,f=20+u*1800,w=2*Math.PI*f*tau,c=Math.cos(w),sn=-Math.sin(w);
       const dr=1-fb*c,di=-fb*sn,dd=dr*dr+di*di,rr=(c*dr+sn*di)/dd,ri=(sn*dr-c*di)/dd;const re=dry+mix*rr,im=mix*ri;
       const db=10*Math.log10(re*re+im*im+1e-9);ink.push([u,clamp(.45-db/40,0,1)]);}}
@@ -816,7 +814,7 @@ function frame(){
   const fbCol=fbk>=0?lerp3([.66,.46,1.0],[1.0,.38,.82],fbk):lerp3([.66,.46,1.0],[.36,.82,1.0],-fbk);
   const runePos=[];
   PARAMS.forEach((p,i)=>{
-    const ang=Math.PI*(.9-i*.16);const tgtP=[Math.cos(ang)*1.45,.62+Math.sin(ang)*.42,.3-Math.sin(ang)*.15];
+    const ang=Math.PI*(.88-i*.19);const tgtP=[Math.cos(ang)*1.45,.62+Math.sin(ang)*.42,.3-Math.sin(ang)*.15];
     const k=clamp((t-(TL.rune0+i*TL.rstag))/TL.rdur);if(k<=0){runePos.push(null);return;}
     const e=eOutBack(k);const sp=(1-k)*2.2;
     let pos=lerp3(bk.mid,tgtP,e);pos=add(pos,[Math.cos(sp*3+i)*sp*.12,Math.sin(k*Math.PI)*.25,Math.sin(sp*3+i)*sp*.12]);
@@ -827,8 +825,8 @@ function frame(){
     const col=bypass?base:(i===3?fbCol:base);
     const gl_=(bypass?.4:1)*puls;
     bb(pos,.62*sc,GREG.DOT,[col[0],col[1],col[2],.22*gl_+act*.25]);
-    bb(pos,.27*sc,GREG.RUNE(i),[col[0],col[1],col[2],1.0*gl_],Math.sin(t*.9+i)*.08+spin[i]);
-    bb(pos,.22*sc,GREG.RUNE(i),[1,1,1,(.45+act*.4)*gl_],Math.sin(t*.9+i)*.08+spin[i]);
+    bb(pos,.27*sc,GREG.RUNE(p.g),[col[0],col[1],col[2],1.0*gl_],Math.sin(t*.9+i)*.08+spin[i]);
+    bb(pos,.22*sc,GREG.RUNE(p.g),[1,1,1,(.45+act*.4)*gl_],Math.sin(t*.9+i)*.08+spin[i]);
     // anneau de valeur
     const NS=21,R0=.19*sc,a0=-Math.PI*.75,a1=Math.PI*.75,av=lerp(a0,a1,p.v),am=p.bip?0:a0;
     for(let s=0;s<NS;s++){const a=lerp(a0,a1,s/(NS-1));const on=p.bip?(a>=Math.min(0,av)-.01&&a<=Math.max(0,av)+.01):(a<=av+.01);
@@ -959,7 +957,7 @@ function toLocal(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)
 function pick(m){if(performance.now()/1000-tStart<READY)return -1;let best=-1,bd=34;
   runeScreen.forEach((s,i)=>{if(!s||(i<6&&closeC>.3))return;const d=Math.hypot(s[0]-m[0],s[1]-m[1]);if(d<bd){bd=d;best=i;}});return best;}
 const knob=i=>i<6?PARAMS[i]:SATS[i-6];
-const knIdx=i=>i<6?i:i+1; // index KN -> index rune (7 = tone)
+const knIdx=i=>i; // KN index -> rune index
 function touched(i){if(i!==6&&!presetDirty){presetDirty=true;refreshPresetUI();}if(i!==6)tween=null;}
 view.addEventListener('pointermove',e=>{mouse=toLocal(e);
   if(drag>=0){touched(drag);const f=e.shiftKey?.0012:.005;const k=knob(drag);k.v=clamp(k.v-(e.clientY-dragY)*f);dragY=e.clientY;}
@@ -976,7 +974,7 @@ const PRUNE='ᚨᛗᛃᛋᚺᛁᛚᛜᛏ',URUNE='ᛒᛞᛇᛈᛉᛝᚷᚹᚠᚢ'
 const roman=n=>{const T=[[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let r='';for(const[v,c]of T)while(n>=v){r+=c;n-=v;}return r;};
 function renderMenu(){pmenu.innerHTML='';PRESETS.forEach((p,i)=>{if(i===FACTORY){const sp=document.createElement('div');sp.className='sep';pmenu.appendChild(sp);}
   const d=document.createElement('div');const rn=p.user?URUNE[(i-FACTORY)%URUNE.length]:PRUNE[i];
-  d.innerHTML=`<b><i>${rn}</i>${p.n}</b><small>${p.d}${p.user?'<span class="del" title="effacer ce sort">✕</span>':''}</small>`;
+  d.innerHTML=`<b><i>${rn}</i>${p.n}</b><small>${p.d}${p.user?'<span class="del" title="erase this spell">✕</span>':''}</small>`;
   d.onclick=()=>{applyPreset(i);pmenu.classList.remove('open');};
   if(p.user)d.querySelector('.del').onclick=ev=>{ev.stopPropagation();PRESETS.splice(i,1);saveUser();if(curPreset===i){curPreset=0;presetDirty=true;}else if(curPreset>i)curPreset--;renderMenu();refreshPresetUI();};
   pmenu.appendChild(d);});}
@@ -999,15 +997,15 @@ document.addEventListener('click',e=>{if(!pmenu.contains(e.target)&&e.target!==p
 renderMenu();refreshPresetUI();
 // graver un sort (preset utilisateur)
 {const eng=document.getElementById('eng');
- eng.onclick=()=>{if(document.getElementById('engin'))return;const inp=document.createElement('input');inp.id='engin';inp.maxLength=16;inp.placeholder='NOM DU SORT';
+ eng.onclick=()=>{if(document.getElementById('engin'))return;const inp=document.createElement('input');inp.id='engin';inp.maxLength=16;inp.placeholder='SPELL NAME';
    pname.style.display='none';pname.parentNode.insertBefore(inp,pname);inp.focus();
    let fin=false;const done=ok=>{if(fin)return;fin=true;const nm=inp.value.trim().toUpperCase();inp.remove();pname.style.display='';
-     if(!ok||!nm)return;PRESETS.push({n:nm,d:'sort gravé',v:KN.map(p=>p.v),fx:'sigil',user:true,sync:SYNC.on});saveUser();
+     if(!ok||!nm)return;PRESETS.push({n:nm,d:'engraved spell',v:KN.map(p=>p.v),fx:'sigil',user:true,sync:SYNC.on});saveUser();
      curPreset=PRESETS.length-1;presetDirty=false;renderMenu();refreshPresetUI();
      const t=performance.now()/1000-tStart;if(t>READY&&closeC<.05)fxEvents.push({t0:t,dir:-1,fx:'engrave',nf:3});};
    inp.onkeydown=ev=>{ev.stopPropagation();if(ev.key==='Enter')done(true);if(ev.key==='Escape')done(false);};inp.onblur=()=>done(!!inp.value.trim());};}
 // synchro tempo
-function setSync(on){const hz=rateHzOf(PARAMS[0].v);SYNC.on=on;const m=document.getElementById('syncm');m.textContent=on?'◈ SYNC':'◈ LIBRE';m.classList.toggle('on',on);
+function setSync(on){const hz=rateHzOf(PARAMS[0].v);SYNC.on=on;const m=document.getElementById('syncm');m.textContent=on?'◈ SYNC':'◈ FREE';m.classList.toggle('on',on);
   // garde une vitesse proche en changeant de mode
   if(on){let best=0,bd=1e9;DIVS.forEach((d,k)=>{const h=SYNC.bpm/60/d[1],e=Math.abs(Math.log(h/hz));if(e<bd){bd=e;best=k;}});PARAMS[0].v=best/(DIVS.length-1);}
   else PARAMS[0].v=clamp(Math.log(Math.max(.05,Math.min(5,hz))/.05)/Math.log(100));}
@@ -1022,7 +1020,7 @@ document.getElementById('zoom').onclick=()=>{const z=ZOOMS[(ZOOMS.indexOf(zoom)+
 const fileIn=document.getElementById('file');
 document.getElementById('imp').onclick=()=>{audioInit();fileIn.click();};
 fileIn.onchange=()=>{loadFile(fileIn.files[0]);fileIn.value='';};
-document.getElementById('demo').onclick=()=>{audioInit();AE.buf=demoBuffer();const f=document.getElementById('fname');f.textContent='démo voix (synthé)';f.title='';audioPlay();};
+document.getElementById('demo').onclick=()=>{audioInit();AE.buf=demoBuffer();const f=document.getElementById('fname');f.textContent='voice demo (synth)';f.title='';audioPlay();};
 document.getElementById('play').onclick=()=>{audioInit();AE.playing?audioStop():audioPlay();};
 document.getElementById('loop').onclick=e=>{AE.loop=!AE.loop;e.target.classList.toggle('on',AE.loop);if(AE.src)AE.src.loop=AE.loop;};
 const plug=document.getElementById('plug');
@@ -1034,12 +1032,12 @@ document.getElementById('byp').onclick=()=>setBypassUI(!bypass);
 function fit(){if(PLUGIN){document.getElementById('plug').style.transform=`scale(${Math.min(innerWidth/800,innerHeight/600)})`;return;}const s=Math.min((innerWidth-16)/802,(innerHeight-16)/642,(typeof zoom==='number'?zoom:100)/100);document.getElementById('plug').style.transform=`scale(${Math.max(.3,s)})`;}
 addEventListener('resize',fit);fit();
 const BR={key:'',sent:0};
-const RUNE2P=[0,1,2,3,4,5,7,6]; // index rune -> index paramètre plugin
+const RUNE2P=[0,1,2,3,4,-1,5]; // rune index -> plugin parameter index
 function pluginVals(){return[...KN.map(p=>p.v),SATS[0].v,SYNC.on?1:0,bypass?1:0];}
-function syncUI(){const m=document.getElementById('syncm');m.textContent=SYNC.on?'◈ SYNC':'◈ LIBRE';m.classList.toggle('on',SYNC.on);}
+function syncUI(){const m=document.getElementById('syncm');m.textContent=SYNC.on?'◈ SYNC':'◈ FREE';m.classList.toggle('on',SYNC.on);}
 function applyHost(v,force){const now=performance.now()/1000;if(!force&&(drag>=0||tween||now-BR.sent<.4))return;
   const K=[...KN,SATS[0]];K.forEach((p,i)=>{if(Math.abs(p.v-v[i])>1e-4)p.v=v[i];});
-  if((v[8]>.5)!==SYNC.on){SYNC.on=v[8]>.5;syncUI();}if((v[9]>.5)!==bypass)setBypassUI(v[9]>.5);BR.key=pluginVals().map(x=>x.toFixed(5)).join();}
+  if((v[6]>.5)!==SYNC.on){SYNC.on=v[6]>.5;syncUI();}if((v[7]>.5)!==bypass)setBypassUI(v[7]>.5);BR.key=pluginVals().map(x=>x.toFixed(5)).join();}
 if(PLUGIN){
   JUCE_BE.addEventListener('state',d=>{if(!d||!BRIDGE_READY)return;if(d.bpm>0)SYNC.bpm=d.bpm;const l=Math.min(1,(d.lvl||0)*4);AE.lvl=l>AE.lvl?lerp(AE.lvl,l,.6):lerp(AE.lvl,l,.15);if(d.v)applyHost(d.v,false);});
   native('getInit').then(r=>{if(!r){BRIDGE_READY=true;return;}loadSorts(r.sorts);if(r.v)applyHost(r.v,true);

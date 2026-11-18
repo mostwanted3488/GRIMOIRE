@@ -28,7 +28,7 @@ juce_add_plugin(GRIMOIRE
     VST3_CATEGORIES              Fx Modulation
     AAX_CATEGORY                 Modulation)
 
-# L'interface 3D (la même page que la preview) est embarquée dans le plugin
+# The 3D UI (same page as the browser preview) is embedded in the plugin
 juce_add_binary_data(GrimoireUI SOURCES ui/index.html)
 
 target_sources(GRIMOIRE PRIVATE

@@ -2,7 +2,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginProcessor.h"
 
-// L'éditeur affiche l'interface 3D du grimoire (page HTML embarquée) dans une WebView2.
+// The editor shows the grimoire 3D UI (embedded HTML page) inside a WebView2.
 class GrimoireEditor : public juce::AudioProcessorEditor,
                        private juce::Timer
 {

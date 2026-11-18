@@ -4,7 +4,7 @@
 
 namespace
 {
-    // divisions de la synchro tempo : { nom, nombre de temps par cycle }
+    // tempo-sync divisions: { name, beats per cycle }
     struct Div { const char* name; double beats; };
     const Div divs[] = { { "4/1", 16.0 }, { "2/1", 8.0 }, { "1/1", 4.0 }, { "1/2", 2.0 }, { "1/2T", 4.0 / 3.0 },
                          { "1/4", 1.0 }, { "1/4T", 2.0 / 3.0 }, { "1/8", 0.5 }, { "1/8T", 1.0 / 3.0 }, { "1/16", 0.25 } };
@@ -45,10 +45,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout GrimoireProcessor::createLay
     l.add (knob ("delay", "Delay", 0.3f, [] (float v, int) { return juce::String (delayMs (v), 1) + " ms"; }));
     l.add (knob ("feedback", "Feedback", 0.62f, [] (float v, int)
                  { const int x = juce::roundToInt ((v * 2 - 1) * 95); return (x > 0 ? "+" : "") + juce::String (x) + " %"; }));
-    l.add (knob ("spread", "Spread", 0.5f, [] (float v, int) { return juce::String (juce::roundToInt (v * 180)) + juce::String (juce::CharPointer_UTF8 ("\xc2\xb0")); }));
     l.add (knob ("mix", "Mix", 0.5f, [] (float v, int) { return juce::String (juce::roundToInt (v * 100)) + " %"; }));
-    l.add (knob ("tone", "Tone", 0.5f, [] (float v, int)
-                 { const int x = juce::roundToInt ((v - 0.5f) * 200); return x == 0 ? juce::String ("Neutre") : (x < 0 ? "Sombre " + juce::String (-x) : "Clair " + juce::String (x)) + " %"; }));
     l.add (knob ("gain", "Gain", 24.0f / 36.0f, [] (float v, int)
                  { const float d = gainDb (v); return (d > 0 ? "+" : "") + juce::String (d, 1) + " dB"; }));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "sync", 1 }, "Tempo Sync", false));
@@ -74,7 +71,7 @@ bool GrimoireProcessor::isBusesLayoutSupported (const BusesLayout& layouts) cons
     return layouts.getMainInputChannelSet() == out;
 }
 
-juce::AudioProcessorParameter* GrimoireProcessor::getBypassParameter() const { return params[9]; }
+juce::AudioProcessorParameter* GrimoireProcessor::getBypassParameter() const { return params[GrimoireIDs::bypass]; }
 
 void GrimoireProcessor::prepareToPlay (double sampleRate, int)
 {
@@ -88,37 +85,22 @@ void GrimoireProcessor::prepareToPlay (double sampleRate, int)
     for (int c = 0; c < 2; ++c)
     {
         hp[(size_t) c].setCoefficients (juce::IIRCoefficients::makeHighPass (sr, 90.0, 0.707));
-        hp[(size_t) c].reset(); lp[(size_t) c].reset(); hs[(size_t) c].reset();
+        hp[(size_t) c].reset();
     }
-    lastTone = -1.0f;
-    updateTone (params[6]->getValue());
 
     auto init = [this] (juce::SmoothedValue<float>& s, float v, double secs) { s.reset (sr, secs); s.setCurrentAndTargetValue (v); };
-    init (sDepth,  params[1]->getValue(), 0.03);
-    init (sDelay,  delayMs (params[2]->getValue()), 0.05);
-    init (sFb,     (params[3]->getValue() * 2.0f - 1.0f) * 0.95f, 0.03);
-    init (sSpread, params[4]->getValue() * juce::MathConstants<float>::pi, 0.05);
-    init (sMix,    params[5]->getValue(), 0.03);
-    init (sGain,   juce::Decibels::decibelsToGain (gainDb (params[7]->getValue())), 0.03);
-    init (sBypass, params[9]->getValue() > 0.5f ? 1.0f : 0.0f, 0.03);
-}
-
-void GrimoireProcessor::updateTone (float tone)
-{
-    if (std::abs (tone - lastTone) < 1.0e-4f) return;
-    lastTone = tone;
-    const double nyq = sr * 0.45;
-    const double cut = tone < 0.5f ? 18000.0 * std::pow (1100.0 / 18000.0, (0.5 - tone) * 2.0) : 18000.0;
-    const double shelfDb = tone > 0.5f ? (tone - 0.5f) * 2.0 * 9.0 : 0.0;
-    const auto lpC = juce::IIRCoefficients::makeLowPass (sr, juce::jmin (cut, nyq), 0.5);
-    const auto hsC = juce::IIRCoefficients::makeHighShelf (sr, juce::jmin (3500.0, nyq), 0.707,
-                                                           (float) juce::Decibels::decibelsToGain (shelfDb));
-    for (int c = 0; c < 2; ++c) { lp[(size_t) c].setCoefficients (lpC); hs[(size_t) c].setCoefficients (hsC); }
+    using namespace GrimoireIDs;
+    init (sDepth,  params[depth]->getValue(), 0.03);
+    init (sDelay,  delayMs (params[delay]->getValue()), 0.05);
+    init (sFb,     (params[feedback]->getValue() * 2.0f - 1.0f) * 0.95f, 0.03);
+    init (sMix,    params[mix]->getValue(), 0.03);
+    init (sGain,   juce::Decibels::decibelsToGain (gainDb (params[gain]->getValue())), 0.03);
+    init (sBypass, params[bypass]->getValue() > 0.5f ? 1.0f : 0.0f, 0.03);
 }
 
 float GrimoireProcessor::readDelay (int ch, float d) const
 {
-    // lecture interpolée (Hermite 4 points) dans la ligne à retard circulaire
+    // 4-point Hermite interpolated read from the circular delay line
     const auto& b = delayBuf[(size_t) ch];
     const int mask = bufSize - 1;
     float rp = (float) writePos - d;
@@ -141,8 +123,9 @@ void GrimoireProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     for (int c = numCh; c < buffer.getNumChannels(); ++c) buffer.clear (c, 0, n);
     if (numCh == 0 || n == 0) return;
 
-    // tempo de l'hôte (synchro)
-    const bool sync = params[8]->getValue() > 0.5f;
+    // host tempo (sync)
+    using namespace GrimoireIDs;
+    const bool syncOn = params[sync]->getValue() > 0.5f;
     double bpm = hostBpm.load();
     bool playing = false;
     double ppq = 0.0;
@@ -155,9 +138,9 @@ void GrimoireProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
         }
     hostBpm.store (bpm);
 
-    const float rateV = params[0]->getValue();
-    const double hz = rateToHz (rateV, sync, bpm);
-    if (sync && playing)
+    const float rateV = params[rate]->getValue();
+    const double hz = rateToHz (rateV, syncOn, bpm);
+    if (syncOn && playing)
     {
         const double beats = divs[divIndex (rateV)].beats;
         lfoPhase = std::fmod (ppq / beats, 1.0);
@@ -165,14 +148,13 @@ void GrimoireProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     }
     const double inc = hz / sr;
 
-    sDepth.setTargetValue (params[1]->getValue());
-    sDelay.setTargetValue (delayMs (params[2]->getValue()));
-    sFb.setTargetValue ((params[3]->getValue() * 2.0f - 1.0f) * 0.95f);
-    sSpread.setTargetValue (params[4]->getValue() * juce::MathConstants<float>::pi);
-    sMix.setTargetValue (params[5]->getValue());
-    sGain.setTargetValue (juce::Decibels::decibelsToGain (gainDb (params[7]->getValue())));
-    sBypass.setTargetValue (params[9]->getValue() > 0.5f ? 1.0f : 0.0f);
-    updateTone (params[6]->getValue());
+    sDepth.setTargetValue (params[depth]->getValue());
+    sDelay.setTargetValue (delayMs (params[delay]->getValue()));
+    sFb.setTargetValue ((params[feedback]->getValue() * 2.0f - 1.0f) * 0.95f);
+    sMix.setTargetValue (params[mix]->getValue());
+    sGain.setTargetValue (juce::Decibels::decibelsToGain (gainDb (params[gain]->getValue())));
+    sBypass.setTargetValue (params[bypass]->getValue() > 0.5f ? 1.0f : 0.0f);
+    const float spread = juce::MathConstants<float>::halfPi; // stereo offset fixed at 90°
 
     const float twoPi = juce::MathConstants<float>::twoPi;
     const float minDelay = (float) (0.00008 * sr);
@@ -181,16 +163,15 @@ void GrimoireProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
 
     for (int i = 0; i < n; ++i)
     {
-        const float depth = sDepth.getNextValue();
+        const float dep = sDepth.getNextValue();
         const float baseMs = sDelay.getNextValue();
         const float fb = sFb.getNextValue();
-        const float spread = sSpread.getNextValue();
-        const float mix = sMix.getNextValue();
+        const float mx = sMix.getNextValue();
         const float g = sGain.getNextValue();
         const float byp = sBypass.getNextValue();
 
         const float base = baseMs * 0.001f * (float) sr;
-        const float amp = depth * juce::jmax (0.0f, base - minDelay);
+        const float amp = dep * juce::jmax (0.0f, base - minDelay);
         const float ph = (float) lfoPhase * twoPi;
 
         float out[2] {};
@@ -205,12 +186,11 @@ void GrimoireProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
             if (! std::isfinite (w)) w = 0.0f;
             delayBuf[(size_t) c][(size_t) writePos] = w;
 
-            y = hs[(size_t) c].processSingleSampleRaw (lp[(size_t) c].processSingleSampleRaw (y));
-            const float fx = x * (1.0f - mix * 0.85f) + y * mix;
+            const float fx = x * (1.0f - mx * 0.85f) + y * mx;
             out[c] = (fx * (1.0f - byp) + x * byp) * g;
         }
 
-        // limiteur de sécurité (plafond ~ -0.4 dBFS)
+        // safety limiter (ceiling ~ -0.4 dBFS)
         float peak = 0.0f;
         for (int c = 0; c < numCh; ++c) peak = juce::jmax (peak, std::abs (out[c]));
         const float target = peak * limEnv > 0.95f ? 0.95f / peak : 1.0f;

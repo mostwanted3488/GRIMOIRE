@@ -1,68 +1,66 @@
 # GRIMOIRE — Voice Flanger
 
-Flanger pour voix dans un univers de grimoire de sorcier en low poly façon PS1.
-Les runes qui lévitent au-dessus du livre sont les knobs.
+A flanger for vocals, set inside a sorcerer's grimoire in low-poly PS1 style.
+The runes floating above the book are the knobs.
 
-**Underwater Palace** · VST3 + AAX (Windows x64) + version Standalone
+**@buyorbealoser** · VST3 + AAX (Windows x64) + Standalone
 
-## Installer (Windows)
+## Install (Windows)
 
-1. Page **Releases** du repo → **GRIMOIRE - dernier build Windows** → télécharger `GRIMOIRE-Windows-x64.zip`
-   (ou onglet **Actions** → dernier build vert → artefact **GRIMOIRE-Windows-x64**).
-2. Dézipper, puis copier le dossier `GRIMOIRE.vst3` dans
+1. Open the repo's **Releases** page → **GRIMOIRE - latest Windows build** → download `GRIMOIRE-Windows-x64.zip`
+   (or **Actions** tab → latest green build → artifact **GRIMOIRE-Windows-x64**).
+2. Unzip, then copy the `GRIMOIRE.vst3` folder to
    `C:\Program Files\Common Files\VST3\`
-3. Dans FL Studio : *Options → Manage plugins → Find more plugins*, puis l'ajouter sur une piste de voix.
+3. In FL Studio: *Options → Manage plugins → Find more plugins*, then load it on a vocal track.
+
+The UI runs on **Microsoft Edge WebView2**, already installed on Windows 10/11.
+If the plugin window stays black: <https://developer.microsoft.com/microsoft-edge/webview2/> ("Evergreen Runtime").
 
 ### Pro Tools (AAX)
 
-Copier `GRIMOIRE.aaxplugin` dans `C:\Program Files\Common Files\Avid\Audio\Plug-Ins\`.
+Copy `GRIMOIRE.aaxplugin` to `C:\Program Files\Common Files\Avid\Audio\Plug-Ins\`.
 
-⚠️ Pro Tools n'ouvre que les plugins AAX **signés par PACE**. Le build automatique produit un AAX **non signé** :
-il fonctionne dans **Pro Tools Developer** (gratuit pour les développeurs AAX), pas encore dans Pro Tools « normal ».
-Pour le signer :
-1. Créer un compte développeur AAX chez Avid et demander l'accès (Pro Tools Developer : devauth@avid.com).
-2. Une fois approuvé, Avid met en relation avec PACE, qui fournit les outils de signature (wraptool) et le certificat sur iLok.
-3. Signer : `wraptool sign --account <compte> --wcguid <GUID> --in GRIMOIRE.aaxplugin --out GRIMOIRE.aaxplugin`
-   (l'étape peut ensuite être ajoutée au workflow GitHub avec les identifiants en secrets).
+⚠️ Pro Tools only loads AAX plugins **signed by PACE**. The automatic build produces an **unsigned** AAX:
+it runs in **Pro Tools Developer** (free for AAX developers), not yet in regular Pro Tools.
+To sign it:
+1. Create an AAX developer account with Avid and request access (Pro Tools Developer: devauth@avid.com).
+2. Once approved, Avid puts you in touch with PACE, who provide the signing tools (wraptool) and the iLok certificate.
+3. Sign: `wraptool sign --account <account> --wcguid <GUID> --in GRIMOIRE.aaxplugin --out GRIMOIRE.aaxplugin`
+   (this step can then be added to the GitHub workflow with the credentials stored as secrets).
 
-L'interface utilise **Microsoft Edge WebView2**, déjà présent sur Windows 10/11.
-Sinon : <https://developer.microsoft.com/microsoft-edge/webview2/> (« Evergreen Runtime »).
+## Controls
 
-## Contrôles
-
-| Rune | Paramètre | Plage |
+| Rune | Parameter | Range |
 |---|---|---|
-| ᚱ | RATE | 0,05 – 5 Hz, ou division du tempo en mode ◈ SYNC (4/1 → 1/16, triolets) |
+| ᚱ | RATE | 0.05 – 5 Hz, or a tempo division in ◈ SYNC mode (4/1 → 1/16, triplets) |
 | ᛟ | DEPTH | 0 – 100 % |
-| ᚦ | DELAY | 0,5 – 10 ms |
-| ᛞ | FEEDBACK | −95 à +95 % |
-| ᛉ | SPREAD | décalage gauche/droite 0 – 180° |
+| ᚦ | DELAY | 0.5 – 10 ms |
+| ᛞ | FEEDBACK | −95 to +95 % |
 | ᚠ | MIX | 0 – 100 % |
-| ᛚ | TONE | sombre ↔ clair (signal traité) |
-| ᛊ | GAIN | −24 à +12 dB (sortie) |
+| ᛊ | GAIN | −24 to +12 dB (output) |
 
-- Glisser ↕ sur une rune (Shift = fin), molette, double-clic = valeur par défaut.
-- **BYPASS** referme le grimoire (bypass de l'hôte relié).
-- 9 sorts d'usine (presets) en bas à gauche, dont **TECHWIZARD**, + **✎ graver un sort** pour sauvegarder les tiens
-  (enregistrés dans `%APPDATA%\GRIMOIRE\sorts.json`).
-- ⤢ : taille de la fenêtre (75 → 200 %).
+- Drag ↕ on a rune (Shift = fine), scroll wheel, double-click = default value.
+- **BYPASS** closes the grimoire (linked to the host's bypass).
+- 9 factory spells (presets) at the bottom left, including **TECHWIZARD**, plus **✎ engrave a spell** to save your own
+  (stored in `%APPDATA%\GRIMOIRE\sorts.json`).
+- ⤢ : window size (75 → 200 %).
 
-Tous les paramètres sont automatisables dans le DAW.
+Every parameter can be automated in the DAW.
 
-## Construire soi-même
+## Build it yourself
 
-Le build Windows tourne automatiquement sur GitHub Actions à chaque push (`.github/workflows/build-windows.yml`).
-En local (Visual Studio 2022 + CMake) :
+The Windows build runs automatically on GitHub Actions on every push (`.github/workflows/build-windows.yml`).
+Locally (Visual Studio 2022 + CMake):
 
 ```powershell
 Register-PackageSource -ProviderName NuGet -Name nugetRepository -Location https://www.nuget.org/api/v2 -Force -Trusted
 Install-Package Microsoft.Web.WebView2 -Scope CurrentUser -RequiredVersion 1.0.1901.177 -Source nugetRepository -Force
 cmake -B build -G "Visual Studio 17 2022" -A x64
-cmake --build build --config Release --target GRIMOIRE_VST3
+cmake --build build --config Release --target GRIMOIRE_VST3 GRIMOIRE_AAX
 ```
 
-## Structure
+## Layout
 
-- `Source/PluginProcessor.*` — moteur audio : flanger stéréo (ligne à retard interpolée Hermite, LFO sinus ou synchro tempo, feedback ±, filtre TONE, gain, limiteur de sécurité, bypass en fondu).
-- `Source/PluginEditor.*` — fenêtre WebView2 qui affiche l'interface et fait le lien paramètres ↔ interface.
-- `ui/index.html` — l'interface 3D (rendu WebGL fait main façon PS1). Ouverte dans un navigateur, c'est aussi la preview avec banc d'essai audio.
+- `Source/PluginProcessor.*` — audio engine: stereo flanger (Hermite-interpolated delay line, sine LFO or tempo sync, ± feedback, fixed 90° stereo offset, gain, safety limiter, crossfaded bypass).
+- `Source/PluginEditor.*` — WebView2 window showing the UI and bridging parameters ↔ UI.
+- `ui/index.html` — the 3D UI (hand-written WebGL renderer, PS1 style). Opened in a browser, it is also the preview with an audio test bench.

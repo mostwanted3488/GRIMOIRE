@@ -47,4 +47,4 @@ jobs:
         run: |
           Compress-Archive -Path dist/* -DestinationPath GRIMOIRE-Windows-x64.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest GRIMOIRE-Windows-x64.zip --target $env:GITHUB_SHA --title "GRIMOIRE - dernier build Windows" --notes "VST3 + AAX (non signé, Pro Tools Developer) + Standalone, Windows x64. VST3 : C:\Program Files\Common Files\VST3\  AAX : C:\Program Files\Common Files\Avid\Audio\Plug-Ins\"
+          gh release create latest GRIMOIRE-Windows-x64.zip --target $env:GITHUB_SHA --title "GRIMOIRE - latest Windows build" --notes "VST3 + AAX (unsigned, Pro Tools Developer) + Standalone, Windows x64. VST3: C:\Program Files\Common Files\VST3  AAX: C:\Program Files\Common Files\Avid\Audio\Plug-Ins"
