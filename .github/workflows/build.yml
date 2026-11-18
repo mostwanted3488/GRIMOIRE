@@ -1,0 +1,86 @@
+name: Build (Windows + macOS)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install WebView2 SDK (NuGet)
+        shell: pwsh
+        run: |
+          Register-PackageSource -ProviderName NuGet -Name nugetRepository -Location https://www.nuget.org/api/v2 -Force -Trusted
+          Install-Package Microsoft.Web.WebView2 -Scope CurrentUser -RequiredVersion 1.0.1901.177 -Source nugetRepository -Force
+
+      - name: Configure
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build
+        run: cmake --build build --config Release --target GRIMOIRE_VST3 GRIMOIRE_AAX GRIMOIRE_Standalone --parallel
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse "build/GRIMOIRE_artefacts/Release/VST3/GRIMOIRE.vst3" dist/
+          Copy-Item -Recurse "build/GRIMOIRE_artefacts/Release/AAX/GRIMOIRE.aaxplugin" dist/
+          Copy-Item "build/GRIMOIRE_artefacts/Release/Standalone/GRIMOIRE.exe" dist/
+          Copy-Item README.md dist/
+          Compress-Archive -Path dist/* -DestinationPath GRIMOIRE-Windows-x64.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GRIMOIRE-Windows-x64
+          path: GRIMOIRE-Windows-x64.zip
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+
+      - name: Build
+        run: cmake --build build --config Release --target GRIMOIRE_VST3 GRIMOIRE_AU GRIMOIRE_Standalone -- -quiet
+
+      - name: Package (ad-hoc signed, universal)
+        run: |
+          A=build/GRIMOIRE_artefacts/Release
+          mkdir -p dist
+          cp -R "$A/VST3/GRIMOIRE.vst3" "$A/AU/GRIMOIRE.component" "$A/Standalone/GRIMOIRE.app" dist/
+          for b in dist/GRIMOIRE.vst3 dist/GRIMOIRE.component dist/GRIMOIRE.app; do codesign --force --deep --sign - "$b"; done
+          lipo -info dist/GRIMOIRE.vst3/Contents/MacOS/GRIMOIRE
+          cp README.md dist/
+          ditto -c -k --sequesterRsrc dist GRIMOIRE-macOS.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GRIMOIRE-macOS
+          path: GRIMOIRE-macOS.zip
+
+  release:
+    needs: [ windows, macos ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+
+      - name: Publish release (latest build)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh release delete latest --yes --cleanup-tag -R "$REPO" || true
+          gh release create latest art/GRIMOIRE-Windows-x64/GRIMOIRE-Windows-x64.zip art/GRIMOIRE-macOS/GRIMOIRE-macOS.zip \
+            -R "$REPO" --target "$GITHUB_SHA" --title "GRIMOIRE - latest build" \
+            --notes "Windows x64: VST3 + AAX (unsigned, Pro Tools Developer) + Standalone. macOS (Apple Silicon + Intel): VST3 + AU + Standalone (unsigned, see README to allow it). Install instructions in the README."

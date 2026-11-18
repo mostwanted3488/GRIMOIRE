@@ -16,12 +16,15 @@ juce::File GrimoireEditor::sortsFile()
 juce::WebBrowserComponent::Options GrimoireEditor::makeOptions()
 {
     using Opt = juce::WebBrowserComponent::Options;
-    return Opt{}
-        .withBackend (Opt::Backend::webview2)
-        .withWinWebView2Options (Opt::WinWebView2{}
-                                     .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)
-                                                              .getChildFile ("GRIMOIRE_WebView2"))
-                                     .withBackgroundColour (juce::Colours::black))
+    auto opts = Opt{};
+   #if JUCE_WINDOWS
+    opts = opts.withBackend (Opt::Backend::webview2)
+               .withWinWebView2Options (Opt::WinWebView2{}
+                                            .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)
+                                                                     .getChildFile ("GRIMOIRE_WebView2"))
+                                            .withBackgroundColour (juce::Colours::black));
+   #endif
+    return opts
         .withNativeIntegrationEnabled()
         .withKeepPageLoadedWhenBrowserIsHidden()
         .withResourceProvider ([this] (const juce::String& url) { return getResource (url); })

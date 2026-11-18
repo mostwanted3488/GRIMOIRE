@@ -3,18 +3,34 @@
 A flanger for vocals, set inside a sorcerer's grimoire in low-poly PS1 style.
 The runes floating above the book are the knobs.
 
-**@buyorbealoser** · VST3 + AAX (Windows x64) + Standalone
+**@buyorbealoser** · Windows: VST3 + AAX + Standalone · macOS: VST3 + AU + Standalone
 
 ## Install (Windows)
 
-1. Open the repo's **Releases** page → **GRIMOIRE - latest Windows build** → download `GRIMOIRE-Windows-x64.zip`
-   (or **Actions** tab → latest green build → artifact **GRIMOIRE-Windows-x64**).
+1. Open the repo's **Releases** page → **GRIMOIRE - latest build** → download `GRIMOIRE-Windows-x64.zip`.
 2. Unzip, then copy the `GRIMOIRE.vst3` folder to
    `C:\Program Files\Common Files\VST3\`
 3. In FL Studio: *Options → Manage plugins → Find more plugins*, then load it on a vocal track.
 
 The UI runs on **Microsoft Edge WebView2**, already installed on Windows 10/11.
 If the plugin window stays black: <https://developer.microsoft.com/microsoft-edge/webview2/> ("Evergreen Runtime").
+
+## Install (macOS — Apple Silicon & Intel)
+
+1. **Releases** → **GRIMOIRE - latest build** → download `GRIMOIRE-macOS.zip` and unzip it.
+2. Copy the plugins:
+   - `GRIMOIRE.vst3` → `~/Library/Audio/Plug-Ins/VST3/`
+   - `GRIMOIRE.component` (AU: Logic, GarageBand, FL Studio…) → `~/Library/Audio/Plug-Ins/Components/`
+   - `GRIMOIRE.app` (standalone) → `/Applications/` if you want it
+3. The build is not notarized by Apple yet, so macOS blocks it the first time. Run once in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/GRIMOIRE.vst3 ~/Library/Audio/Plug-Ins/Components/GRIMOIRE.component /Applications/GRIMOIRE.app
+```
+
+4. Restart your DAW (Logic re-scans AU plugins on launch). Saved spells live in `~/Library/GRIMOIRE/sorts.json`.
+
+To sell it, the plugin will need to be signed and notarized with an Apple Developer account (99 $/year); the workflow can then do it automatically.
 
 ### Pro Tools (AAX)
 
@@ -49,8 +65,8 @@ Every parameter can be automated in the DAW.
 
 ## Build it yourself
 
-The Windows build runs automatically on GitHub Actions on every push (`.github/workflows/build-windows.yml`).
-Locally (Visual Studio 2022 + CMake):
+Windows and macOS builds run automatically on GitHub Actions on every push (`.github/workflows/build.yml`) and are published to the **latest** release.
+Windows (Visual Studio 2022 + CMake):
 
 ```powershell
 Register-PackageSource -ProviderName NuGet -Name nugetRepository -Location https://www.nuget.org/api/v2 -Force -Trusted
@@ -59,8 +75,15 @@ cmake -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release --target GRIMOIRE_VST3 GRIMOIRE_AAX
 ```
 
+macOS (Xcode + CMake):
+
+```bash
+cmake -B build -G Xcode
+cmake --build build --config Release --target GRIMOIRE_VST3 GRIMOIRE_AU GRIMOIRE_Standalone
+```
+
 ## Layout
 
 - `Source/PluginProcessor.*` — audio engine: stereo flanger (Hermite-interpolated delay line, sine LFO or tempo sync, ± feedback, fixed 90° stereo offset, gain, safety limiter, crossfaded bypass).
-- `Source/PluginEditor.*` — WebView2 window showing the UI and bridging parameters ↔ UI.
+- `Source/PluginEditor.*` — web view (WebView2 on Windows, WKWebView on macOS) showing the UI and bridging parameters ↔ UI.
 - `ui/index.html` — the 3D UI (hand-written WebGL renderer, PS1 style). Opened in a browser, it is also the preview with an audio test bench.

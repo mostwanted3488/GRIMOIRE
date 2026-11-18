@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Universal binary (Apple Silicon + Intel)")
+
 project(GRIMOIRE VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -12,11 +16,17 @@ FetchContent_Declare(JUCE
     GIT_SHALLOW    TRUE)
 FetchContent_MakeAvailable(JUCE)
 
+if(APPLE)
+    set(GRIMOIRE_FORMATS VST3 AU Standalone)
+else()
+    set(GRIMOIRE_FORMATS VST3 AAX Standalone)
+endif()
+
 juce_add_plugin(GRIMOIRE
     COMPANY_NAME                 "Underwater Palace"
     PLUGIN_MANUFACTURER_CODE     Uwpl
     PLUGIN_CODE                  Grmr
-    FORMATS                      VST3 AAX Standalone
+    FORMATS                      ${GRIMOIRE_FORMATS}
     PRODUCT_NAME                 "GRIMOIRE"
     IS_SYNTH                     FALSE
     NEEDS_MIDI_INPUT             FALSE
