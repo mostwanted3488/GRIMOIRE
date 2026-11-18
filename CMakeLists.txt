@@ -16,7 +16,7 @@ juce_add_plugin(GRIMOIRE
     COMPANY_NAME                 "Underwater Palace"
     PLUGIN_MANUFACTURER_CODE     Uwpl
     PLUGIN_CODE                  Grmr
-    FORMATS                      VST3 Standalone
+    FORMATS                      VST3 AAX Standalone
     PRODUCT_NAME                 "GRIMOIRE"
     IS_SYNTH                     FALSE
     NEEDS_MIDI_INPUT             FALSE
@@ -25,7 +25,8 @@ juce_add_plugin(GRIMOIRE
     EDITOR_WANTS_KEYBOARD_FOCUS  TRUE
     COPY_PLUGIN_AFTER_BUILD      FALSE
     NEEDS_WEBVIEW2               TRUE
-    VST3_CATEGORIES              Fx Modulation)
+    VST3_CATEGORIES              Fx Modulation
+    AAX_CATEGORY                 Modulation)
 
 # L'interface 3D (la même page que la preview) est embarquée dans le plugin
 juce_add_binary_data(GrimoireUI SOURCES ui/index.html)

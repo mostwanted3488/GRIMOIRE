@@ -3,7 +3,7 @@
 Flanger pour voix dans un univers de grimoire de sorcier en low poly façon PS1.
 Les runes qui lévitent au-dessus du livre sont les knobs.
 
-**Underwater Palace** · VST3 (Windows x64) + version Standalone
+**Underwater Palace** · VST3 + AAX (Windows x64) + version Standalone
 
 ## Installer (Windows)
 
@@ -12,6 +12,18 @@ Les runes qui lévitent au-dessus du livre sont les knobs.
 2. Dézipper, puis copier le dossier `GRIMOIRE.vst3` dans
    `C:\Program Files\Common Files\VST3\`
 3. Dans FL Studio : *Options → Manage plugins → Find more plugins*, puis l'ajouter sur une piste de voix.
+
+### Pro Tools (AAX)
+
+Copier `GRIMOIRE.aaxplugin` dans `C:\Program Files\Common Files\Avid\Audio\Plug-Ins\`.
+
+⚠️ Pro Tools n'ouvre que les plugins AAX **signés par PACE**. Le build automatique produit un AAX **non signé** :
+il fonctionne dans **Pro Tools Developer** (gratuit pour les développeurs AAX), pas encore dans Pro Tools « normal ».
+Pour le signer :
+1. Créer un compte développeur AAX chez Avid et demander l'accès (Pro Tools Developer : devauth@avid.com).
+2. Une fois approuvé, Avid met en relation avec PACE, qui fournit les outils de signature (wraptool) et le certificat sur iLok.
+3. Signer : `wraptool sign --account <compte> --wcguid <GUID> --in GRIMOIRE.aaxplugin --out GRIMOIRE.aaxplugin`
+   (l'étape peut ensuite être ajoutée au workflow GitHub avec les identifiants en secrets).
 
 L'interface utilise **Microsoft Edge WebView2**, déjà présent sur Windows 10/11.
 Sinon : <https://developer.microsoft.com/microsoft-edge/webview2/> (« Evergreen Runtime »).
