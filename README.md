@@ -7,7 +7,8 @@ Les runes qui lévitent au-dessus du livre sont les knobs.
 
 ## Installer (Windows)
 
-1. Onglet **Actions** du repo → dernier build vert → télécharger l'artefact **GRIMOIRE-Windows-x64**.
+1. Page **Releases** du repo → **GRIMOIRE - dernier build Windows** → télécharger `GRIMOIRE-Windows-x64.zip`
+   (ou onglet **Actions** → dernier build vert → artefact **GRIMOIRE-Windows-x64**).
 2. Dézipper, puis copier le dossier `GRIMOIRE.vst3` dans
    `C:\Program Files\Common Files\VST3\`
 3. Dans FL Studio : *Options → Manage plugins → Find more plugins*, puis l'ajouter sur une piste de voix.

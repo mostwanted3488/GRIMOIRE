@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-2022
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -35,3 +37,13 @@ jobs:
         with:
           name: GRIMOIRE-Windows-x64
           path: dist
+
+      - name: Publish release (dernier build)
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Compress-Archive -Path dist/* -DestinationPath GRIMOIRE-Windows-x64.zip -Force
+          gh release delete latest --yes --cleanup-tag 2>$null
+          gh release create latest GRIMOIRE-Windows-x64.zip --target $env:GITHUB_SHA --title "GRIMOIRE - dernier build Windows" --notes "VST3 + Standalone Windows x64. Copier GRIMOIRE.vst3 dans C:\Program Files\Common Files\VST3\"

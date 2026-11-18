@@ -1,6 +1,10 @@
 #include "PluginEditor.h"
 #include "BinaryData.h"
 
+#if JUCE_WINDOWS && ! JUCE_USE_WIN_WEBVIEW2
+ #error "WebView2 doit etre active (NEEDS_WEBVIEW2) pour afficher l'interface"
+#endif
+
 namespace { constexpr int baseW = 800, baseH = 600; }
 
 juce::File GrimoireEditor::sortsFile()
