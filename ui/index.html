@@ -604,7 +604,7 @@ const PARAMS=[
   {n:'DEPTH',def:.6,f:v=>Math.round(v*100)+' %'},
   {n:'DELAY',def:.3,f:v=>(0.5+v*9.5).toFixed(1)+' ms'},
   {n:'FEEDBACK',def:.62,bip:true,f:v=>{const x=Math.round((v*2-1)*95);return(x>0?'+':'')+x+' %';}},
-  {n:'MIX',g:5,def:.5,f:v=>Math.round(v*100)+' %'},
+  {n:'MIX',g:5,def:1,f:v=>Math.round(v*100)+' %'},
 ];
 const SATS=[
   {n:'GAIN',cell:'GRUNE',sx:735,sy:478,def:24/36,zero:24/36,lp:'b',col:[.82,.74,1.0],f:v=>{const d=gainDb(v);return(d>0?'+':'')+d.toFixed(1)+' dB';}},

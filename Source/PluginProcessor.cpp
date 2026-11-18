@@ -45,7 +45,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout GrimoireProcessor::createLay
     l.add (knob ("delay", "Delay", 0.3f, [] (float v, int) { return juce::String (delayMs (v), 1) + " ms"; }));
     l.add (knob ("feedback", "Feedback", 0.62f, [] (float v, int)
                  { const int x = juce::roundToInt ((v * 2 - 1) * 95); return (x > 0 ? "+" : "") + juce::String (x) + " %"; }));
-    l.add (knob ("mix", "Mix", 0.5f, [] (float v, int) { return juce::String (juce::roundToInt (v * 100)) + " %"; }));
+    l.add (knob ("mix", "Mix", 1.0f, [] (float v, int) { return juce::String (juce::roundToInt (v * 100)) + " %"; }));
     l.add (knob ("gain", "Gain", 24.0f / 36.0f, [] (float v, int)
                  { const float d = gainDb (v); return (d > 0 ? "+" : "") + juce::String (d, 1) + " dB"; }));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "sync", 1 }, "Tempo Sync", false));
